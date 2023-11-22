@@ -137,7 +137,7 @@ gdp_df |>
   distinct(Country) |> 
   count(Continent) |> 
   ggplot()+
-  geom_col(aes(x=Continent, y=n))
+  geom_col(aes(x=reorder(Continent, -n), y=n))
 ```
 
 16. Create a boxplot showing GDP per capita in 2018 split out by continent. What do you notice?
@@ -146,22 +146,46 @@ gdp_df |>
   filter(Year==2018) |> 
   group_by(Continent) |> 
   ggplot()+
-  geom_boxplot(aes(x=Continent, y=GDP_Per_Capita))
+  geom_boxplot(aes(x=Continent, y=GDP_Per_Capita))+
+  stat_boxplot(aes(x=Continent, y=GDP_Per_Capita),geom = 'errorbar')
 ```
 
 17. Read life_expectancy.csv into a tibble named life_expectancy. Do not modify the csv file in order to read this data in.
 ```{r}
-life_expectancy<-read_csv("../data/life_expectancy.csv")
+life_expectancy<-read_csv("../data/life_expectancy.csv", skip=4)
 ```
 
 18. Drop the Country Code, Indicator Name, and Indicator Code columns. Then use `pivot_longer` to convert your data from wide to long. That is, instead of having one row per country and multiple columns per year, we want to have multiple rows per country and a single column for year. After melting, rename the columns to `Country`, `Year`, and `Life_Expectancy`.
 ```{r}
+life_expectancy<-life_expectancy |> 
+  select(-'Country Code', -'Indicator Name', -'Indicator Code')
+  
+```
+```{r}
+life_expectancy<-life_expectancy |> 
+  pivot_longer(!`Country Name`, names_to="Year", values_to="Life_Expectancy") |> 
+  rename(Country=`Country Name`) |> 
+  dbl(Year)
 
 ```
 
+
 19. What was the first country with a life expectancy to exceed 80?
+```{r}
+life_expectancy |> 
+  filter(Life_Expectancy>80) |> 
+  slice_min(Year)
+```
 
 20. Merge `gdp_df` and `life_expectancy`, keeping all countries and years that appear in both DataFrames. Save the result to a new DataFrame named `gdp_le`. If you get any errors in doing this, read them carefully and correct them. Look at the first five rows of your new data frame to confirm it merged correctly. Also, check the last five rows to make sure the data is clean and as expected.
+```{r}
+gdp_df |> 
+  inner_join(life_expectancy)
+```
+
+
+```{r}
+```
 
 21. Create a new DataFrame, named `gdp_le_2019` by extracting data for the year 2019 from `gdp_le`. How many countries have a life expectancy of at least 80 in 2019?
 
